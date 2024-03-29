@@ -7,32 +7,32 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import resample
 from spacy.language import Language
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 logging.basicConfig(handlers=[logging.StreamHandler(sys.stdout)],
                     format='[%(asctime)s : %(levelname)s : %(message)s]',
                     level=logging.DEBUG)
 
 
 class DropAndTransformHandler(BaseEstimator, TransformerMixin):
-    def __init__(self, column_name: str) -> None:
+    def __init__(self, column_name: str):
         self.column_name = column_name
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        logger.info(f'NOW PERFORMING DROP AND TRANSFORM FOR {X.shape[0]} ROWS')
+        LOGGER.info(f'NOW PERFORMING DROP AND TRANSFORM FOR {X.shape[0]} ROWS')
         X[self.column_name] = X.filter(like='essay').apply(lambda row: '\n'.join(row.dropna()), axis=1)
         columns_to_drop = set(X.columns) - {self.column_name, 'sex'}
         X = X.drop(columns=columns_to_drop)
         X = X[X[self.column_name] != '']
 
-        logger.info(f'PROCESS COMPLETE FOR {X.shape[0]} ROWS')
+        LOGGER.info(f'PROCESS COMPLETE FOR {X.shape[0]} ROWS')
         return X
 
 
 class TextPatternCleaner(BaseEstimator, TransformerMixin):
-    def __init__(self, column_name: str) -> None:
+    def __init__(self, column_name: str):
         self.url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
         self.html_pattern = r'<.*?>+'
         self.digit_pattern = r'\d'
@@ -44,10 +44,10 @@ class TextPatternCleaner(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        logger.info(f'NOW PERFORMING PATTERN CLEANING FOR {X.shape[0]} ROWS')
+        LOGGER.info(f'NOW PERFORMING PATTERN CLEANING FOR {X.shape[0]} ROWS')
         X[self.column_name] = X[self.column_name].astype(str).apply(self.remove_patterns)
 
-        logger.info(f'PROCESS COMPLETE FOR {X.shape[0]} ROWS')
+        LOGGER.info(f'PROCESS COMPLETE FOR {X.shape[0]} ROWS')
         return X
 
     def remove_patterns(self, text: str) -> str:
@@ -69,10 +69,10 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        logger.info(f'NOW PERFORMING SPACY NORMALIZATION FOR {X.shape[0]} ROWS')
+        LOGGER.info(f'NOW PERFORMING SPACY NORMALIZATION FOR {X.shape[0]} ROWS')
         X[self.column_name] = X[self.column_name].astype(str).apply(self.preprocess_text)
 
-        logger.info(f'PROCESS COMPLETE FOR {X.shape[0]} ROWS')
+        LOGGER.info(f'PROCESS COMPLETE FOR {X.shape[0]} ROWS')
         return X
 
     def preprocess_text(self, text: str) -> str:
@@ -81,14 +81,14 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
 
 
 class DataResampler(BaseEstimator, TransformerMixin):
-    def __init__(self, target_column) -> None:
+    def __init__(self, target_column):
         self.target_column = target_column
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        logger.info(f'NOW PERFORMING DATA RESAMPLING FOR {X.shape[0]} ROWS')
+        LOGGER.info(f'NOW PERFORMING DATA RESAMPLING FOR {X.shape[0]} ROWS')
         gender_counts = X[self.target_column].value_counts()
         minority_gender = gender_counts.idxmin()
         minority_count = gender_counts.min()
@@ -100,7 +100,7 @@ class DataResampler(BaseEstimator, TransformerMixin):
         df_oversampled = resample(df_minority, replace=True, n_samples=majority_count, random_state=42)
         df_resampled = pd.concat([df_oversampled, df_majority])
 
-        logger.info(f'PROCESS COMPLETE: {df_resampled.shape[0]} ROWS')
+        LOGGER.info(f'PROCESS COMPLETE: {df_resampled.shape[0]} ROWS')
         return df_resampled.sample(frac=1, random_state=42)
 
 
@@ -112,6 +112,6 @@ class DropNullRows(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        logger.info(f'NOW DROPPING ROWS CONTAINING NULL VALUES FOR {X.shape[0]} ROWS')
+        LOGGER.info(f'NOW DROPPING ROWS CONTAINING NULL VALUES FOR {X.shape[0]} ROWS')
         return X.dropna()
 

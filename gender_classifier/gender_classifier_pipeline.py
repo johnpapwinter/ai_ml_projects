@@ -1,0 +1,70 @@
+import sys
+import spacy
+import logging
+import pandas as pd
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
+from sklearn.model_selection import RandomizedSearchCV
+
+from pipeline_components import *
+
+
+LOGGER = logging.getLogger(__name__)
+logging.basicConfig(handlers=[logging.StreamHandler(sys.stdout)],
+                    format='[%(asctime)s : %(levelname)s : %(message)s]',
+                    level=logging.DEBUG)
+TEXT_COLUMN = 'text'
+GENDER_COLUMN = 'sex'
+nlp = spacy.load('en_core_web_sm')
+
+
+class GenderClassifierPipeline:
+    def __init__(self):
+        self.text_column_name = 'text'
+        self.gender_column_name = 'sex'
+        self.nlp = spacy.load('en_core_web_sm')
+
+    def get_data_pipeline(self) -> Pipeline:
+        return Pipeline(steps=[
+            ("resampler", DataResampler(self.gender_column_name)),
+            ("drop", DropAndTransformHandler(self.text_column_name)),
+            ("pattern_cleaner", TextPatternCleaner(self.text_column_name)),
+            ("normalizer", TextNormalizer(self.text_column_name, self.nlp)),
+            ("drop_null", DropNullRows())
+        ])
+
+    def get_model_pipeline(self,
+                           model: LinearSVC | RandomForestClassifier,
+                           params: dict | None) -> Pipeline:
+        if params is None:
+            return Pipeline(steps=[
+                ("vectorizer", TfidfVectorizer()),
+                ("model", model)
+            ])
+        else:
+            return Pipeline(steps=[
+                ("vectorizer", TfidfVectorizer()),
+                ("model", model(**params))
+            ])
+
+    def fine_tune_pipeline(self,
+                           model: LinearSVC | RandomForestClassifier,
+                           params: dict,
+                           X_train: pd.Series,
+                           y_train: pd.Series) -> dict:
+        random_search = RandomizedSearchCV(self.get_model_pipeline(model, None),
+                                           params,
+                                           cv=5,
+                                           n_iter=10,
+                                           n_jobs=-1)
+        random_search.fit(X_train, y_train)
+
+        LOGGER.info(f"Best hyperparameters: {random_search.best_params_}")
+        LOGGER.info(f"Best score: {random_search.best_score_}")
+
+        return self.__remove_prefix_from_params(random_search.best_params_)
+
+    def __remove_prefix_from_params(self, params: dict, prefix: str) -> dict:
+        return {key.replace(prefix, ''): value for key, value in params.items()}
