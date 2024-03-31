@@ -103,13 +103,13 @@ class DataResampler(BaseEstimator, TransformerMixin):
 
 
 class DropNullRows(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        pass
+    def __init__(self, column_name: str):
+        self.column_name = column_name
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         LOGGER.info(f'NOW DROPPING ROWS CONTAINING NULL VALUES FOR {X.shape[0]} ROWS')
-        return X.dropna()
+        return X.dropna(subset=[self.column_name])
 

@@ -1,6 +1,8 @@
 import spacy
 import logging
 import pandas as pd
+import joblib
+
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
@@ -30,7 +32,7 @@ class GenderClassifierPipeline:
             ("drop", DropAndTransformHandler(self.text_column_name)),
             ("pattern_cleaner", TextPatternCleaner(self.text_column_name)),
             ("normalizer", TextNormalizer(self.text_column_name, self.nlp)),
-            ("drop_null", DropNullRows())
+            ("drop_null", DropNullRows(self.text_column_name))
         ])
 
     def get_model_pipeline(self, params: dict | None) -> Pipeline:
@@ -57,6 +59,13 @@ class GenderClassifierPipeline:
         LOGGER.info(f"Best score: {random_search.best_score_}")
 
         return self.__remove_prefix_from_params(params=random_search.best_params_, prefix="model__")
+
+    def save_model_pipeline(self, model_pipeline: Pipeline, filename: str) -> None:
+        try:
+            joblib.dump(model_pipeline, filename)
+            LOGGER.info(f"MODEL PIPELINE SUCCESSFULLY SAVED TO FILE: {filename}")
+        except Exception as e:
+            LOGGER.error(f"ERROR OCCURRED WHILE SAVING MODEL PIPELINE: {e}")
 
     def __remove_prefix_from_params(self, params: dict, prefix: str) -> dict:
         return {key.replace(prefix, ''): value for key, value in params.items()}
