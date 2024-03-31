@@ -1,7 +1,20 @@
+import sys
 import zipfile
+import logging
 import pandas as pd
+import numpy as np
 
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import cross_val_score
+from sklearn.base import ClassifierMixin
+from sklearn.base import RegressorMixin
+from typing import Union
 from datetime import datetime
+
+LOGGER = logging.getLogger(__name__)
+logging.basicConfig(handlers=[logging.StreamHandler(sys.stdout)],
+                    format='[%(asctime)s : %(levelname)s : %(message)s]',
+                    level=logging.DEBUG)
 
 
 def load_df_from_zip(zip_filepath: str) -> pd.DataFrame:
@@ -23,4 +36,27 @@ def save_df_to_zip(df: pd.DataFrame, filename: str) -> None:
         with zip_file.open(csv_filename, 'w') as file:
             df.to_csv(file, index=False)
 
+
+def evaluate_prediction(y_test: np.ndarray, y_pred: np.ndarray) -> None:
+    accuracy = accuracy_score(y_test, y_pred)
+    matrix = confusion_matrix(y_test, y_pred)
+    class_report = classification_report(y_test, y_pred)
+
+    LOGGER.info(f"Accuracy of model: {accuracy}")
+    LOGGER.info(f"Confusion matrix of model: {matrix}")
+    LOGGER.info(f"Classification Report of model: {class_report}")
+
+
+def evaluate_with_cross_validation(model: Union[ClassifierMixin, RegressorMixin],
+                                   X_train: np.ndarray,
+                                   y_train: np.ndarray) -> None:
+    cv_scores = cross_val_score(model, X_train, y_train, cv=5)
+
+    LOGGER.info(f"Cross-validation scores: {cv_scores}")
+
+    mean_cv_score = cv_scores.mean()
+    std_cv_score = cv_scores.std()
+
+    LOGGER.info(f"Mean cross-validation score: {mean_cv_score}")
+    LOGGER.info(f"Standard deviation of cross-validation scores: {std_cv_score}")
 
