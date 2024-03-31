@@ -1,3 +1,4 @@
+import os
 import zipfile
 import logging
 import pandas as pd
@@ -34,6 +35,17 @@ def save_df_to_zip(df: pd.DataFrame, filename: str) -> None:
     with zipfile.ZipFile(zip_filename, 'w', compression=zipfile.ZIP_DEFLATED) as zip_file:
         with zip_file.open(csv_filename, 'w') as file:
             df.to_csv(file, index=False)
+
+
+def get_zip_if_exists(directory: str) -> str | None:
+    files = os.listdir(directory)
+    target_files = [filename for filename in files if filename.endswith('.zip')]
+
+    if target_files:
+        filename = target_files[0]
+        return filename
+    else:
+        return None
 
 
 def evaluate_prediction(y_test: np.ndarray, y_pred: np.ndarray) -> None:
