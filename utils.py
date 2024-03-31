@@ -1,4 +1,3 @@
-import sys
 import zipfile
 import logging
 import pandas as pd
@@ -11,10 +10,10 @@ from sklearn.base import RegressorMixin
 from typing import Union
 from datetime import datetime
 
+import logging_config
+
+logging_config.configure_logging()
 LOGGER = logging.getLogger(__name__)
-logging.basicConfig(handlers=[logging.StreamHandler(sys.stdout)],
-                    format='[%(asctime)s : %(levelname)s : %(message)s]',
-                    level=logging.DEBUG)
 
 
 def load_df_from_zip(zip_filepath: str) -> pd.DataFrame:

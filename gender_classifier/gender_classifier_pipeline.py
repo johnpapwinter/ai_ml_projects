@@ -1,4 +1,3 @@
-import sys
 import spacy
 import logging
 import pandas as pd
@@ -9,11 +8,11 @@ from sklearn.model_selection import RandomizedSearchCV
 
 from pipeline_components import *
 
+import logging_config
 
+logging_config.configure_logging()
 LOGGER = logging.getLogger(__name__)
-logging.basicConfig(handlers=[logging.StreamHandler(sys.stdout)],
-                    format='[%(asctime)s : %(levelname)s : %(message)s]',
-                    level=logging.DEBUG)
+
 TEXT_COLUMN = 'text'
 GENDER_COLUMN = 'sex'
 nlp = spacy.load('en_core_web_sm')

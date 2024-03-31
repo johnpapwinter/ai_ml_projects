@@ -1,5 +1,3 @@
-import sys
-
 import pandas as pd
 import re
 import logging
@@ -7,10 +5,10 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import resample
 from spacy.language import Language
 
+import logging_config
+
+logging_config.configure_logging()
 LOGGER = logging.getLogger(__name__)
-logging.basicConfig(handlers=[logging.StreamHandler(sys.stdout)],
-                    format='[%(asctime)s : %(levelname)s : %(message)s]',
-                    level=logging.DEBUG)
 
 
 class DropAndTransformHandler(BaseEstimator, TransformerMixin):
