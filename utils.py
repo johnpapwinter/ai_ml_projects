@@ -6,8 +6,7 @@ import numpy as np
 
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import cross_val_score
-from sklearn.base import ClassifierMixin
-from sklearn.base import RegressorMixin
+from sklearn.base import ClassifierMixin, RegressorMixin
 from typing import Union
 from datetime import datetime
 
@@ -48,7 +47,7 @@ def get_zip_if_exists(directory: str) -> str | None:
         return None
 
 
-def evaluate_prediction(y_test: np.ndarray, y_pred: np.ndarray) -> None:
+def evaluate_prediction(y_test: np.ndarray, y_pred: np.ndarray) -> float:
     accuracy = accuracy_score(y_test, y_pred)
     matrix = confusion_matrix(y_test, y_pred)
     class_report = classification_report(y_test, y_pred)
@@ -56,6 +55,8 @@ def evaluate_prediction(y_test: np.ndarray, y_pred: np.ndarray) -> None:
     LOGGER.info(f"Accuracy of model: {accuracy}")
     LOGGER.info(f"Confusion matrix of model: {matrix}")
     LOGGER.info(f"Classification Report of model: {class_report}")
+
+    return accuracy
 
 
 def evaluate_with_cross_validation(model: Union[ClassifierMixin, RegressorMixin],
