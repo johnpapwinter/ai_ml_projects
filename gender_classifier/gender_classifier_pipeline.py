@@ -5,7 +5,6 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import LinearSVC
 from sklearn.model_selection import RandomizedSearchCV
 
 from pipeline_components import *
@@ -35,26 +34,20 @@ class GenderClassifierPipeline:
             ("drop_null", DropNullRows())
         ])
 
-    def get_model_pipeline(self,
-                           model: LinearSVC | RandomForestClassifier,
-                           params: dict | None) -> Pipeline:
+    def get_model_pipeline(self, params: dict | None) -> Pipeline:
         if params is None:
             return Pipeline(steps=[
                 ("vectorizer", TfidfVectorizer()),
-                ("model", model)
+                ("model", RandomForestClassifier())
             ])
         else:
             return Pipeline(steps=[
                 ("vectorizer", TfidfVectorizer()),
-                ("model", model(**params))
+                ("model", RandomForestClassifier(**params))
             ])
 
-    def fine_tune_pipeline(self,
-                           model: LinearSVC | RandomForestClassifier,
-                           params: dict,
-                           X_train: pd.Series,
-                           y_train: pd.Series) -> dict:
-        random_search = RandomizedSearchCV(self.get_model_pipeline(model, None),
+    def fine_tune_pipeline(self, params: dict, X_train: pd.Series, y_train: pd.Series) -> dict:
+        random_search = RandomizedSearchCV(self.get_model_pipeline(params=None),
                                            params,
                                            cv=5,
                                            n_iter=10,
@@ -64,7 +57,7 @@ class GenderClassifierPipeline:
         LOGGER.info(f"Best hyperparameters: {random_search.best_params_}")
         LOGGER.info(f"Best score: {random_search.best_score_}")
 
-        return self.__remove_prefix_from_params(random_search.best_params_)
+        return self.__remove_prefix_from_params(params=random_search.best_params_, prefix="model__")
 
     def __remove_prefix_from_params(self, params: dict, prefix: str) -> dict:
         return {key.replace(prefix, ''): value for key, value in params.items()}
