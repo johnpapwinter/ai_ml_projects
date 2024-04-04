@@ -67,5 +67,5 @@ class GenderClassifierPipeline:
         except Exception as e:
             LOGGER.error(f"ERROR OCCURRED WHILE SAVING MODEL PIPELINE: {e}")
 
-    def __remove_prefix_from_params(self, params: dict, prefix: str) -> dict:
+    def _remove_prefix_from_params(self, params: dict, prefix: str) -> dict:
         return {key.replace(prefix, ''): value for key, value in params.items()}

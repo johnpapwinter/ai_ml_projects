@@ -72,3 +72,20 @@ def evaluate_with_cross_validation(model: Union[ClassifierMixin, RegressorMixin]
     LOGGER.info(f"Mean cross-validation score: {mean_cv_score}")
     LOGGER.info(f"Standard deviation of cross-validation scores: {std_cv_score}")
 
+
+def prepare_kaggle_submission(test_data_location: str,
+                              preprocess: callable,
+                              estimator: callable,
+                              target_column: str) -> None:
+    test_data = pd.read_csv(test_data_location)
+    ids = test_data['id']
+
+    LOGGER.info(f"Preprocessing data for submission")
+    preprocessed_data = preprocess(test_data)
+    LOGGER.info(f"Making predictions")
+    predictions = estimator(preprocessed_data)
+
+    submission = pd.DataFrame({'id': ids, target_column: predictions})
+    submission.to_csv('submission.csv', index=False)
+    LOGGER.info(f"Submission file ready")
+
