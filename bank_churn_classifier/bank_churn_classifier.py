@@ -55,8 +55,8 @@ class BankChurnClassifier:
         LOGGER.info(f"Accuracy of model: {accuracy}")
         return loss, accuracy
 
-    def get_predictions(self, X_values: pd.DataFrame) -> pd.DataFrame:
-        predicted_classes = (self.model.predict(X_values) > 0.5).astype(int)
+    def get_predictions(self, X_values: pd.DataFrame, threshold: float) -> pd.DataFrame:
+        predicted_classes = (self.model.predict(X_values) > threshold).astype(int)
         return predicted_classes[:, 0]
 
     def save_model(self):
