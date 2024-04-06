@@ -1,6 +1,7 @@
 import os
 import zipfile
 import logging
+import inspect
 import pandas as pd
 import numpy as np
 
@@ -76,14 +77,19 @@ def evaluate_with_cross_validation(model: Union[ClassifierMixin, RegressorMixin]
 def prepare_kaggle_submission(test_data_location: str,
                               preprocess: callable,
                               estimator: callable,
-                              target_column: str) -> None:
+                              target_column: str,
+                              threshold: float = None) -> None:
     test_data = pd.read_csv(test_data_location)
     ids = test_data['id']
 
     LOGGER.info(f"Preprocessing data for submission")
     preprocessed_data = preprocess(test_data)
     LOGGER.info(f"Making predictions")
-    predictions = estimator(preprocessed_data)
+    estimator_signature = inspect.signature(estimator)
+    if 'threshold' in estimator_signature.parameters:
+        predictions = estimator.predict(preprocessed_data, threshold)
+    else:
+        predictions = estimator(preprocessed_data)
 
     submission = pd.DataFrame({'id': ids, target_column: predictions})
     submission.to_csv('submission.csv', index=False)
