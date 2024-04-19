@@ -1,7 +1,13 @@
 import spacy
+import logging
 from sklearn.pipeline import Pipeline
 
 from pipeline_components import *
+
+import logging_config
+
+logging_config.configure_logging()
+LOGGER = logging.getLogger(__name__)
 
 
 def dominant_sentiment_by_topic(df: pd.DataFrame) -> pd.DataFrame:
@@ -25,6 +31,7 @@ class DataPreprocessor:
         ])
 
     def add_normalized_text(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
+        LOGGER.info("Adding spaCy normalized text column")
         df[column] = df[column].astype(str).apply(self.normalize_text)
         return df
 
