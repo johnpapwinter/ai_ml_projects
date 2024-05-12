@@ -14,7 +14,7 @@ from prompts import *
 class GMHelper:
     def __init__(self):
         self._embeddings = HuggingFaceEmbeddings()
-        self._chroma_directory = "doc_chroma/"
+        self._chroma_directory = "data/"
         self._vector_db = Chroma(
             collection_name="races_monsters",
             persist_directory= self._chroma_directory,
