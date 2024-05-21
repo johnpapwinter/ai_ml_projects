@@ -3,6 +3,7 @@ import pandas as pd
 from langchain_core.messages import HumanMessage, AIMessage
 from helper import GMHelper
 from knowledge_base import KnowledgeBase
+from loaders import BytesIOPyMuPDFLoader
 from streamlit_float import float_init, float_parent, float_css_helper
 
 db = KnowledgeBase()
@@ -21,6 +22,8 @@ def handle_knowledge_base(action):
                 label="Choose a file", type=["pdf"]
             )
             # CALL TO UPLOAD FUNCTION (params doc_type, uploaded_file)
+            loader = BytesIOPyMuPDFLoader(uploaded_file)
+            db.create_document(uploaded_file.file_id, loader.load())
         case "UPDATE":
             st.text("UPDATE AN EXISTING DOCUMENT OF THE KNOWLEDGE BASE")
             documents = st.selectbox(
@@ -34,6 +37,8 @@ def handle_knowledge_base(action):
                 label="Choose a file", type=["pdf"]
             )
             # CALL TO UPDATE FUNCTION (param uploaded_file)
+            loader = BytesIOPyMuPDFLoader(uploaded_file)
+            db.update_document(documents, loader.load())
         case "DELETE":
             st.text("REMOVE AN EXISTING DOCUMENT FROM THE KNOWLEDGE BASE")
             documents = st.selectbox(
@@ -44,6 +49,7 @@ def handle_knowledge_base(action):
             )
             st.write(f"We will delete {documents}")
             # CALL TO DELETE FUNCTION (param deleted_file)
+            db.delete_document(documents)
     if st.button("Submit"):
         st.session_state.document = {"key": "some_key", "value": "some_value"}
         # st.rerun()
