@@ -61,7 +61,6 @@ st.header('GM Helper :sunglasses:', divider='grey')
 float_init(theme=True, include_unstable_primary=False)
 
 chat_tab, docs_tab = st.tabs(["Chat", "Docs"])
-# docs_tab, chat_tab = st.tabs(["Docs", "Chat"])
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
