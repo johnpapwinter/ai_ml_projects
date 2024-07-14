@@ -14,7 +14,7 @@ class CrossSellingModel:
         return self.model
 
     def save_model(self, model_name: str) -> None:
-        self.model.save(model_name)
+        self.model.save(f"{model_name}.keras")
 
     def _create_model(self, input_shape: int) -> None:
         self.model.add(InputLayer(shape=(input_shape,)))
@@ -32,14 +32,22 @@ class CrossSellingModel:
                     validation_split: float):
         early_stopping = EarlyStopping(patience=10, min_delta=0.001, monitor='val_loss', restore_best_weights=True)
 
-        history = self.model.fit(X_train,
-                                 y_train,
-                                 epochs=epochs,
-                                 batch_size=batch_size,
-                                 validation_split=validation_split,
-                                 callbacks=[early_stopping]
-                                 )
+        self.model.fit(X_train,
+                       y_train,
+                       epochs=epochs,
+                       batch_size=batch_size,
+                       validation_split=validation_split,
+                       callbacks=[early_stopping],
+                       verbose=2
+                       )
 
     def get_predictions(self, X_values: pd.DataFrame, threshold: float) -> pd.DataFrame:
         predictions = (self.model.predict(X_values) > threshold).astype(int)
         return predictions[:, 0]
+
+    def prepare_kaggle_submission(self, df: pd.DataFrame, ids: pd.DataFrame) -> None:
+        predictions = self.get_predictions(df, 0.5)
+        submission = pd.DataFrame({'id': ids, 'Response': predictions})
+        submission.to_csv('submission.csv', index=False)
+
+
