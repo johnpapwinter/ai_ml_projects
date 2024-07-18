@@ -1,38 +1,30 @@
 import pandas as pd
 
-from sklearn.preprocessing import StandardScaler
-from utils import load_df_from_zip
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
 
 
 class DataPreprocessor:
-    def __init__(self, path_to_zip: str):
-        self.path_to_df = path_to_zip
-        self.df = load_df_from_zip(self.path_to_df)
-        self.scaler = StandardScaler()
+    def __init__(self, df: pd.DataFrame):
+        self.df = df
+        self.scaler = MinMaxScaler()
+        self.one_hot_encoder = OneHotEncoder(handle_unknown='ignore')
+        self.preprocessor = ColumnTransformer(
+            transformers=[
+                ('onehot', self.one_hot_encoder,
+                 ['Gender', 'Vehicle_Age', 'Vehicle_Damage', 'Region_Code', 'Policy_Sales_Channel']),
+                ('scaler', self.scaler, ['Age', 'Annual_Premium', 'Vintage'])
+            ],
+            remainder='passthrough'
+        )
 
-    def preprocess_data(self) -> pd.DataFrame:
-        self.df = self._drop_columns()
-        self.df = self._one_hot_encode()
-        self.df = self._replace_values()
-        # self.df = self._normalize_values()
+    def preprocess_data(self, test_data: pd.DataFrame = None) -> pd.DataFrame:
+        if not test_data:
+            return self.preprocessor.fit_transform(self.df)
+        else:
+            return self.preprocessor.transform(test_data)
 
-        return self.df
+    def get_feature_names_out(self):
+        return self.preprocessor.get_feature_names_out()
 
-    def _one_hot_encode(self) -> pd.DataFrame:
-        categorical_columns = ['Vehicle_Age', 'Vehicle_Damage']
-
-        return pd.get_dummies(self.df, columns=categorical_columns)
-
-    def _replace_values(self) -> pd.DataFrame:
-        self.df['Gender'] = self.df['Gender'].replace({'Male': 0, 'Female': 1})
-        self.df = self.df.replace({col: {True: 1, False: 0} for col in self.df.columns})
-
-        return self.df
-
-    def _drop_columns(self) -> pd.DataFrame:
-        return self.df.drop(columns=['id', 'Driving_License'], axis=1)
-
-    def _normalize_values(self) -> pd.DataFrame:
-        columns = ['Annual_Premium', 'Vintage', 'Policy_Sales_Channel', 'Age']
-        self.df[columns] = self.scaler.fit_transform(self.df[columns])
-        return self.df
