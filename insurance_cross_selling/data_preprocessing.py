@@ -13,8 +13,11 @@ class DataPreprocessor:
         self.preprocessor = ColumnTransformer(
             transformers=[
                 ('onehot', self.one_hot_encoder,
-                 ['Gender', 'Vehicle_Age', 'Vehicle_Damage', 'Region_Code', 'Policy_Sales_Channel']),
-                ('scaler', self.scaler, ['Age', 'Annual_Premium', 'Vintage'])
+                 ['Gender', 'Vehicle_Age', 'Vehicle_Damage']),
+                ('scaler', self.scaler, ['Age', 'Annual_Premium', 'Vintage', 'Region_Code', 'Policy_Sales_Channel'])
+                # ('onehot', self.one_hot_encoder,
+                #  ['Gender', 'Vehicle_Age', 'Vehicle_Damage', 'Region_Code', 'Policy_Sales_Channel']),
+                # ('scaler', self.scaler, ['Age', 'Annual_Premium', 'Vintage'])
             ],
             remainder='passthrough'
         )
